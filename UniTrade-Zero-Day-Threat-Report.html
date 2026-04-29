@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniTrade - Zero Day Threat Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a28;
+            --bg-card-hover: #22223a;
+            --accent-red: #ff4d6a;
+            --accent-orange: #ff8c42;
+            --accent-blue: #4d8bff;
+            --accent-green: #36d399;
+            --accent-purple: #a855f7;
+            --text-primary: #f0f0f5;
+            --text-secondary: #9999b0;
+            --text-muted: #666680;
+            --border-color: #2a2a40;
+            --gradient-danger: linear-gradient(135deg, #ff4d6a, #ff8c42);
+            --gradient-info: linear-gradient(135deg, #4d8bff, #a855f7);
+            --gradient-success: linear-gradient(135deg, #36d399, #4d8bff);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 32px;
+        }
+
+        /* Header */
+        .report-header {
+            text-align: center;
+            padding: 60px 0 50px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .report-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 200px; height: 3px;
+            background: var(--gradient-danger);
+            border-radius: 2px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .badge-danger {
+            background: rgba(255, 77, 106, 0.15);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 77, 106, 0.3);
+        }
+
+        .report-header h1 {
+            font-size: 42px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            background: var(--gradient-danger);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .report-header .subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .meta-item strong {
+            color: var(--text-secondary);
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title .step-num {
+            background: var(--gradient-danger);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-right: 8px;
+        }
+
+        /* Toxic Pair Card */
+        .toxic-pair {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 36px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+            page-break-inside: avoid;
+        }
+
+        .toxic-pair:hover {
+            border-color: rgba(255, 77, 106, 0.4);
+        }
+
+        .toxic-pair::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--gradient-danger);
+        }
+
+        .pair-number {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-red);
+            margin-bottom: 16px;
+        }
+
+        .pair-features {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .feature-tag {
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .feature-tag.a {
+            background: rgba(255, 77, 106, 0.12);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 77, 106, 0.25);
+        }
+
+        .feature-tag.b {
+            background: rgba(255, 140, 66, 0.12);
+            color: var(--accent-orange);
+            border: 1px solid rgba(255, 140, 66, 0.25);
+        }
+
+        .vs-icon {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .conflict-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .conflict-text strong {
+            color: var(--text-primary);
+        }
+
+        /* Exploit Card */
+        .exploit-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 36px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+            page-break-inside: avoid;
+        }
+
+        .exploit-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--gradient-info);
+        }
+
+        .exploit-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+        }
+
+        .exploit-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--text-primary);
+        }
+
+        .exploit-desc {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .risk-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 14px;
+        }
+
+        .risk-high {
+            background: rgba(255, 77, 106, 0.15);
+            color: var(--accent-red);
+        }
+
+        /* Decision Card */
+        .decision-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 36px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+            page-break-inside: avoid;
+        }
+
+        .decision-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--gradient-success);
+        }
+
+        .decision-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-green);
+            margin-bottom: 12px;
+        }
+
+        .remove-feature {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255, 77, 106, 0.12);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 77, 106, 0.25);
+            margin-bottom: 18px;
+        }
+
+        .pm-message {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            padding: 16px 20px;
+            background: rgba(77, 139, 255, 0.06);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .pm-message em {
+            color: var(--text-primary);
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        /* Feature Matrix Table */
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .feature-table th {
+            text-align: left;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .feature-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .feature-table tr:hover td {
+            background: var(--bg-card);
+        }
+
+        .feature-table .fname {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Footer */
+        .report-footer {
+            text-align: center;
+            padding-top: 40px;
+            margin-top: 50px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 50px 0;
+        }
+
+        /* Print Styles */
+        @media print {
+            body { background: white; color: #111; }
+            .toxic-pair, .exploit-card, .decision-card {
+                border: 1px solid #ddd;
+                background: #fafafa;
+            }
+            .toxic-pair::before, .exploit-card::before, .decision-card::before {
+                background: #333;
+            }
+            .report-header h1 {
+                -webkit-text-fill-color: #111;
+                color: #111;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="report-header">
+            <span class="badge badge-danger">Confidential &middot; Engineering Review</span>
+            <h1>Zero Day Threat Report</h1>
+            <p class="subtitle">UniTrade v1 &mdash; Requirement Contradiction Analysis</p>
+            <div class="meta-row">
+                <span class="meta-item"><strong>Product:</strong> UniTrade Campus Marketplace</span>
+                <span class="meta-item"><strong>Version:</strong> 1.0 Pre-Launch</span>
+                <span class="meta-item"><strong>Date:</strong> April 27, 2026</span>
+                <span class="meta-item"><strong>Role:</strong> Lead Engineer</span>
+            </div>
+        </div>
+
+        <!-- FEATURE MATRIX -->
+        <p class="section-title">Reference &mdash; Feature Matrix</p>
+        <table class="feature-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Feature Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>F1</td><td class="fname">Escrow Wallet Protection</td><td>Buyer payment is held inside UniTrade until the item is successfully handed over</td></tr>
+                <tr><td>F2</td><td class="fname">Instant Seller Payout</td><td>Seller receives money immediately when buyer taps Buy</td></tr>
+                <tr><td>F3</td><td class="fname">Anonymous Marketplace Mode</td><td>Users can browse and purchase without sharing personal profile details</td></tr>
+                <tr><td>F4</td><td class="fname">First Year Safety Restriction</td><td>First-year students cannot buy items above a fixed price threshold</td></tr>
+                <tr><td>F5</td><td class="fname">Final Sale at Handoff</td><td>Once the buyer accepts the item in person, the sale becomes final</td></tr>
+                <tr><td>F6</td><td class="fname">48 Hour Auto Refund Button</td><td>After pickup, buyers can trigger a no-questions-asked refund within 48 hours</td></tr>
+                <tr><td>F7</td><td class="fname">Verified Campus Email Sign Up</td><td>Every user must register with a valid university email</td></tr>
+                <tr><td>F8</td><td class="fname">Seller Rating and Flag History</td><td>Platform shows seller trust signals based on completed trades and prior reports</td></tr>
+            </tbody>
+        </table>
+
+        <!-- ===== STEP 1: TOXIC PAIRS ===== -->
+        <div class="divider"></div>
+        <p class="section-title"><span class="step-num">Step 1</span> &mdash; Toxic Pairs Identified</p>
+
+        <!-- Pair 1 -->
+        <div class="toxic-pair">
+            <div class="pair-number">Toxic Pair 1</div>
+            <div class="pair-features">
+                <span class="feature-tag a">F1 &mdash; Escrow Wallet Protection</span>
+                <span class="vs-icon">VS</span>
+                <span class="feature-tag b">F2 &mdash; Instant Seller Payout</span>
+            </div>
+            <p class="conflict-text">
+                <strong>Why they conflict:</strong> Escrow Wallet Protection requires that the buyer's payment is <strong>held by UniTrade</strong> until the physical handoff is confirmed. Instant Seller Payout requires that the seller receives funds <strong>immediately at the moment of purchase</strong>. These two rules impose mutually exclusive states on the same pool of money &mdash; it cannot simultaneously be held in escrow <em>and</em> released to the seller. If both features ship, the system has no deterministic answer to the question: <em>"Where does the money go the instant the buyer taps Buy?"</em>
+            </p>
+        </div>
+
+        <!-- Pair 2 -->
+        <div class="toxic-pair">
+            <div class="pair-number">Toxic Pair 2</div>
+            <div class="pair-features">
+                <span class="feature-tag a">F5 &mdash; Final Sale at Handoff</span>
+                <span class="vs-icon">VS</span>
+                <span class="feature-tag b">F6 &mdash; 48 Hour Auto Refund Button</span>
+            </div>
+            <p class="conflict-text">
+                <strong>Why they conflict:</strong> Final Sale at Handoff declares the transaction <strong>irreversible</strong> the moment the buyer accepts the item in person. The 48 Hour Auto Refund Button grants the buyer a <strong>48-hour window to reverse</strong> that very same transaction after pickup. These two features define opposite post-handoff states: one says <em>"done forever"</em> and the other says <em>"still reversible for 48 hours."</em> They cannot both be the authoritative policy governing completed sales.
+            </p>
+        </div>
+
+        <!-- Pair 3 -->
+        <div class="toxic-pair">
+            <div class="pair-number">Toxic Pair 3</div>
+            <div class="pair-features">
+                <span class="feature-tag a">F3 &mdash; Anonymous Marketplace Mode</span>
+                <span class="vs-icon">VS</span>
+                <span class="feature-tag b">F8 &mdash; Seller Rating and Flag History</span>
+            </div>
+            <p class="conflict-text">
+                <strong>Why they conflict:</strong> Anonymous Marketplace Mode promises that users can transact <strong>without revealing their profile identity</strong> to other students. Seller Rating and Flag History requires the platform to <strong>publicly display a seller's trade history, ratings, and prior reports</strong> &mdash; information that is inherently tied to a persistent, identifiable seller profile. If a seller is anonymous, there is no profile to attach ratings to. If ratings are displayed, the seller is no longer anonymous. The two features impose contradictory visibility rules on the same user entity.
+            </p>
+        </div>
+
+        <!-- ===== STEP 2: EXPLOIT REPORTS ===== -->
+        <div class="divider"></div>
+        <p class="section-title"><span class="step-num">Step 2</span> &mdash; Zero Day Exploit Reports</p>
+
+        <!-- Exploit 1 -->
+        <div class="exploit-card">
+            <div class="exploit-label">Exploit &mdash; Toxic Pair 1</div>
+            <div class="exploit-title">Ghost Listing Cash-Out</div>
+            <p class="exploit-desc">
+                A malicious seller lists a fake item (e.g., "MacBook Pro &mdash; ₹25,000"). A buyer taps <strong>Buy</strong>. Because Instant Seller Payout is active, the seller receives ₹25,000 <strong>immediately</strong>. The seller then never shows up for the handoff. Escrow was supposed to protect the buyer, but the money already left the system. The buyer has lost their money with no recourse, and UniTrade is liable for the gap.
+            </p>
+            <span class="risk-tag risk-high">Risk: Direct Money Loss</span>
+        </div>
+
+        <!-- Exploit 2 -->
+        <div class="exploit-card">
+            <div class="exploit-label">Exploit &mdash; Toxic Pair 2</div>
+            <div class="exploit-title">Free-Rental Refund Loop</div>
+            <p class="exploit-desc">
+                A buyer purchases a calculator before an exam. They accept the item at handoff, which the system marks as <strong>Final Sale</strong>. However, the 48 Hour Auto Refund Button is also live. After the exam, the buyer taps refund within 48 hours &mdash; no questions asked. The buyer used the calculator for free, the seller loses both the item and the money, and the platform's "Final Sale" guarantee is proven worthless. Repeat abusers can exploit this for every short-term need.
+            </p>
+            <span class="risk-tag risk-high">Risk: System Abuse &amp; Broken Trust</span>
+        </div>
+
+        <!-- Exploit 3 -->
+        <div class="exploit-card">
+            <div class="exploit-label">Exploit &mdash; Toxic Pair 3</div>
+            <div class="exploit-title">Flagged Seller Identity Reset</div>
+            <p class="exploit-desc">
+                A seller accumulates multiple negative flags and a 1.5-star rating after selling defective items. Under Seller Rating and Flag History, buyers would see these warnings and avoid them. But with Anonymous Marketplace Mode active, the same seller simply lists items anonymously &mdash; their flag history and low rating are hidden. Buyers unknowingly purchase from a repeatedly reported seller. The trust system is completely bypassed, and the platform fails to protect its users.
+            </p>
+            <span class="risk-tag risk-high">Risk: Trust System Bypass</span>
+        </div>
+
+        <!-- ===== STEP 3: ENGINEER DECISIONS ===== -->
+        <div class="divider"></div>
+        <p class="section-title"><span class="step-num">Step 3</span> &mdash; Engineer Decisions</p>
+
+        <!-- Decision 1 -->
+        <div class="decision-card">
+            <div class="decision-label">Decision &mdash; Toxic Pair 1</div>
+            <div class="remove-feature">✕ &nbsp;Remove: Instant Seller Payout</div>
+            <div class="pm-message">
+                <em>Message to PM:</em> We should remove <strong>Instant Seller Payout</strong> from V1 because the escrow protection flow &mdash; which is our primary buyer trust mechanism &mdash; cannot function if funds exit the platform the moment a purchase is made; buyer money must remain held until handoff confirmation to prevent fraud.
+            </div>
+        </div>
+
+        <!-- Decision 2 -->
+        <div class="decision-card">
+            <div class="decision-label">Decision &mdash; Toxic Pair 2</div>
+            <div class="remove-feature">✕ &nbsp;Remove: 48 Hour Auto Refund Button</div>
+            <div class="pm-message">
+                <em>Message to PM:</em> We should remove the <strong>48 Hour Auto Refund Button</strong> from V1 because a no-questions-asked post-handoff refund directly invalidates our Final Sale at Handoff policy, creating a loophole that enables consequence-free item returns and systematic abuse by buyers.
+            </div>
+        </div>
+
+        <!-- Decision 3 -->
+        <div class="decision-card">
+            <div class="decision-label">Decision &mdash; Toxic Pair 3</div>
+            <div class="remove-feature">✕ &nbsp;Remove: Anonymous Marketplace Mode</div>
+            <div class="pm-message">
+                <em>Message to PM:</em> We should remove <strong>Anonymous Marketplace Mode</strong> from V1 because allowing users to hide their identity renders the Seller Rating and Flag History system ineffective, enabling flagged or low-rated sellers to evade accountability and eroding the trust foundation of the marketplace.
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="report-footer">
+            <p>UniTrade &middot; Zero Day Threat Report &middot; V1 Pre-Launch Review</p>
+            <p style="margin-top: 6px;">Prepared by Lead Engineer &middot; April 2026</p>
+        </div>
+
+    </div>
+</body>
+</html>
